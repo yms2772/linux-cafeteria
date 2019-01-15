@@ -3,7 +3,6 @@ MAIN_DIR=$HOME
 TARGET_DOWNLOAD=$MAIN_DIR/cache/download
 TARGET=$TARGET_DOWNLOAD/cafeteria.html
 TARGET_CACHE=$MAIN_DIR/cache
-TARGET_BINARY=$TARGET_CACHE/binary
 SCHOOL_CODE_INFO=$TARGET_CACHE/school_code/school_code.db
 MONTH=$(date +%m)
 YEAR=$(date +%Y)
@@ -11,12 +10,32 @@ TODAY=$(date +%a)
 RED='\033[0;31m'
 WHITE='\033[0m'
 
+if [ ! -d "$MAIN_DIR" ]
+then
+mkdir -p "$MAIN_DIR"
+fi
+
+if [ ! -d "$TARGET_CACHE" ]
+then
+mkdir -p "$TARGET_CACHE"
+fi
+
+if [ ! -d "$TARGET_DOWNLOAD" ]
+then
+mkdir -p "$TARGET_DOWNLOAD"
+fi
+
 if [ "$1" = "eng" ]
 then
 LANG=eng
 else
 LANG=kor
 fi
+
+function DISPLAY_HELP(){
+echo "$(LANG $LANG DISPLAY_HELP)"
+exit 0
+}
 
 function DIRECT_DISPLAY(){
 if [ ! -e "$TARGET" ]
@@ -48,21 +67,23 @@ function DIRECT_DISPLAY_SELETED(){
 if [ ! -e "$TARGET" ]
 then
 read -s -n1 -p "! $(LANG $LANG ERROR_FAILDREQUEST)
-
 $(LANG $LANG PRESS_ANYKEY)" press
 exit 0
 fi
-read -p "! $(LANG $LANG SEL_WANNA_DAY): " i
 echo "
 | $YEAR. $MONTH |
 "
+i=$1
+TODAY=$(date -d $YEAR$MONTH$i | awk '{print $1}')
 PRINT_TYPE=TODAY
 PARS_COMMON
 PARS_PRINT
 PRT_ALLERGY
 CLR_SCRIPT
 read -s -n1 -p "
-$(LANG $LANG PRESS_ANYKEY)" press
+$(LANG $LANG PRESS_ANYKEY)
+기본실행을 먼저 하십시오" press
+echo
 exit 0
 }
 
@@ -75,7 +96,7 @@ sed -i 's/&amp;/ /g' $TARGET
 function PARS_BREAKFAST(){
 if [ "$(echo "$CARTE" | grep "조식")" = "" ]
 then
-CARTE_BREAKFAST="$(LANG $LANG CARTRE_NODATA)"
+CARTE_BREAKFAST="$(LANG $LANG CARTE_NODATA)"
 else
 CARTE_BREAKFAST="$(echo "$CARTE" | cut -d"[" -f2 | sed 's/조식] //')"
 fi
@@ -84,9 +105,9 @@ fi
 function PARS_LUNCH(){
 if [ "$(echo "$CARTE" | grep "중식")" = "" ]
 then
-CARTE_LUNCH="$(LANG $LANG CARTRE_NODATA)"
+CARTE_LUNCH="$(LANG $LANG CARTE_NODATA)"
 else
-if [ "$CARTE_BREAKFAST" = "$(LANG $LANG CARTRE_NODATA)" ]
+if [ "$CARTE_BREAKFAST" = "$(LANG $LANG CARTE_NODATA)" ]
 then
 CARTE_LUNCH="$(echo "$CARTE" | cut -d"[" -f2 | sed 's/중식] //')"
 else
@@ -98,30 +119,30 @@ fi
 function PARS_DINNER(){
 if [ "$(echo "$CARTE" | grep "석식" | tr -s "] " "O")" = "" ]
 then
-CARTE_DINNER="$(LANG $LANG CARTRE_NODATA)"
+CARTE_DINNER="$(LANG $LANG CARTE_NODATA)"
 else
-if [ "$CARTE_BREAKFAST" != "$(LANG $LANG CARTRE_NODATA)" ]
+if [ "$CARTE_BREAKFAST" != "$(LANG $LANG CARTE_NODATA)" ]
 then
-if [ "$CARTE_LUNCH" != "$(LANG $LANG CARTRE_NODATA)" ]
+if [ "$CARTE_LUNCH" != "$(LANG $LANG CARTE_NODATA)" ]
 then
 CARTE_DINNER="$(echo "$CARTE" | cut -d"[" -f4 | sed 's/석식] //')"
 fi
 fi
-if [ "$CARTE_BREAKFAST" = "$(LANG $LANG CARTRE_NODATA)" ]
+if [ "$CARTE_BREAKFAST" = "$(LANG $LANG CARTE_NODATA)" ]
 then
-if [ "$CARTE_LUNCH" = "$(LANG $LANG CARTRE_NODATA)" ]
+if [ "$CARTE_LUNCH" = "$(LANG $LANG CARTE_NODATA)" ]
 then
 CARTE_DINNER="$(echo "$CARTE" | cut -d"[" -f2 | sed 's/석식] //')"
 fi
 fi
 if [ "$CARTE_BREAKFAST" = "조식] " ]
 then
-if [ "$CARTE_LUNCH" = "$(LANG $LANG CARTRE_NODATA)" ]
+if [ "$CARTE_LUNCH" = "$(LANG $LANG CARTE_NODATA)" ]
 then
 CARTE_DINNER="$(echo "$CARTE" | cut -d"[" -f3 | sed 's/석식] //')"
 fi
 fi
-if [ "$CARTE_BREAKFAST" = "$(LANG $LANG CARTRE_NODATA)" ]
+if [ "$CARTE_BREAKFAST" = "$(LANG $LANG CARTE_NODATA)" ]
 then
 if [ "$CARTE_LUNCH" = "중식] " ]
 then
@@ -151,9 +172,9 @@ fi
 fi
 echo "| $MONTH. $i ($(LANG $LANG DATE_DAYOFAWEAK)) |
 -----------------------------------------------------------------------------------------------------------------------
-[$(LANG $LANG CARTRE_BREAKFAST)] | $CARTE_BREAKFAST
-[$(LANG $LANG CARTRE_LUNCH)] | $CARTE_LUNCH
-[$(LANG $LANG CARTRE_DINNER)] | $CARTE_DINNER
+[$(LANG $LANG CARTE_BREAKFAST)] | $CARTE_BREAKFAST
+[$(LANG $LANG CARTE_LUNCH)] | $CARTE_LUNCH
+[$(LANG $LANG CARTE_DINNER)] | $CARTE_DINNER
 -----------------------------------------------------------------------------------------------------------------------
 "
 else
@@ -297,7 +318,7 @@ function CENCOR_ALLERGY_CLEAR(){
 find $TARGET_DOWNLOAD/* ! -name cafeteria.html -exec rm {} \;
 }
 
-function DOWN_CARTRE(){
+function DOWN_CARTE(){
 case $1 in
 서울특별시 )
 SCHOOL_REGION=stu.sen.go.kr
@@ -387,32 +408,35 @@ echo "1.Egg 2.Milk 3.Buckwheat 4.Peanut 5.Soybean 6.Wheat 7.Chub mackerel 8.Crab
 CACHE_SIZE )
 echo "CACHE TOTAL"
 ;;
-CARTRE_BREAKFAST )
+CARTE_BREAKFAST )
 echo "BREAKFAST"
 ;;
-CARTRE_LUNCH )
+CARTE_LUNCH )
 echo "LUNCH"
 ;;
-CARTRE_DINNER )
+CARTE_DINNER )
 echo "DINNER"
 ;;
-CARTRE_CANCEL )
+CARTE_CANCEL )
 printf "${RED}CANCEL (취소){WHITE}"
 ;;
-CARTRE_MONTHLY )
+CARTE_MONTHLY )
 echo "MONTH"
 ;;
-CARTRE_NODATA )
+CARTE_NODATA )
 echo "NOTHING"
 ;;
-CARTRE_TODAY )
+CARTE_TODAY )
 echo "TODAY"
 ;;
-CARTRE_SELECT )
+CARTE_SELECT )
 echo "SELECT"
 ;;
 CHECK_CAHCE )
 echo "Checking cache..."
+;;
+CLEAR_FILE )
+echo "Clearing..."
 ;;
 DATE_DAYOFAWEAK )
 if [ $TODAY = Mon ]
@@ -455,6 +479,7 @@ echo "Usage: ./cafeteria [LANG] [OPTION1] [OPTION2]
 		-c: clear OPTION2
 		-d: display directly
 		argy: add your allergy informations and display for warning
+		rtime: measure script running time
 		help: display help
 		   
 		[OPTION2]
@@ -462,11 +487,7 @@ echo "Usage: ./cafeteria [LANG] [OPTION1] [OPTION2]
 		argy: clear allegry info (ONLY FOR -c OPTION)
 		school_code: display directly (ONLY FOR -d OPTION)"
 ;;
-DISPLAY_NOTICE_NO )
-echo -n -e "\x1b[31mThere is no notice by 'nn' option"
-echo -e "\x1b[0m"
-;;
-DOWN_CARTREINFO )
+DOWN_CARTEINFO )
 echo "Downloading table of menus information..."
 ;;
 DOWN_SCHOOLCODE )
@@ -489,9 +510,6 @@ printf "${RED}There is no record.${WHITE}"
 ;;
 ERROR_NOT_SUPPORT_YET )
 printf "${RED}Not supported yet.${WHITE}"
-;;
-ERROR_NOINTERNET )
-printf "${RED}Failed to connect.${WHITE}"
 ;;
 LOCATION_NAME )
 echo "LOCAL"
@@ -517,9 +535,6 @@ printf "${RED}FAILED${WHITE}"
 RESULT_SUCCESS )
 echo "OK"
 ;;
-SEL_WANNA_DAY )
-echo "Please enter the desired date"
-;;
 SCHOOL_NAME )
 echo "SCHOOL"
 ;;
@@ -531,27 +546,6 @@ echo "High School Search"
 ;;
 SEARCH_WORDS )
 echo "WORDS"
-;;
-UPDATE_ASK )
-echo "Do you want to update?"
-;;
-UPDATE_ASK_LAST )
-echo "Do you really want to update?"
-;;
-UPDATE_LOG_DOWNLOAD )
-echo "Downloading update info..."
-;;
-UPDATE_SCRIPT_DOWNLOAD )
-echo "Downloading update file..."
-;;
-UPDATE_LASTEST )
-echo "Script is the latest version"
-;;
-UPDATE_MENU )
-echo "Update this script"
-;;
-UPDATE_OLD )
-echo "Script update is required"
 ;;
 UPDATE_NEWVERSION )
 echo "Updating with new information..."
@@ -607,32 +601,35 @@ echo "1.난류 2.우유 3.메밀 4.땅콩 5.대두 6.밀 7.고등어 8.게 9.새
 CACHE_SIZE )
 echo "캐시크기"
 ;;
-CARTRE_BREAKFAST )
+CARTE_BREAKFAST )
 echo "조식"
 ;;
-CARTRE_LUNCH )
+CARTE_LUNCH )
 echo "점심"
 ;;
-CARTRE_DINNER )
+CARTE_DINNER )
 echo "저녁"
 ;;
-CARTRE_CANCEL )
+CARTE_CANCEL )
 printf "${RED}취소 (CANCEL)${WHITE}"
 ;;
-CARTRE_MONTHLY )
+CARTE_MONTHLY )
 echo "월간식단"
 ;;
-CARTRE_NODATA )
+CARTE_NODATA )
 printf "${RED}없음${WHITE}"
 ;;
-CARTRE_TODAY )
+CARTE_TODAY )
 echo "오늘식단"
 ;;
-CARTRE_SELECT )
+CARTE_SELECT )
 echo "선택"
 ;;
 CHECK_CAHCE )
 echo "캐시 확인 중..."
+;;
+CLEAR_FILE )
+echo "초기화 중..."
 ;;
 DATE_DAYOFAWEAK )
 if [ $TODAY = Mon ]
@@ -675,6 +672,7 @@ echo "사용법: ./cafeteria [언어] [옵션1] [옵션2]
 		-c: OPTION2를 청소
 		-d: 식단표 바로 표시
 		argy: 알레르기 정보를 추가하고 식단표에 경고를 표시합니다
+		rtime: 스크립트 실행시간을 측정합니다 (디버그)
 		help: 도움말
 		   
 		[OPTION2]
@@ -682,10 +680,7 @@ echo "사용법: ./cafeteria [언어] [옵션1] [옵션2]
 		argy: 저장된 알레르기 정보를 제거합니다 (-c 옵션전용)
 		학교코드: 식단표 바로 표시 (-d 옵션전용)"
 ;;
-DISPLAY_NOTICE_NO )
-printf "${RED}옵션으로 공지가 표시되지 않습니다${WHITE}"
-;;
-DOWN_CARTREINFO )
+DOWN_CARTEINFO )
 echo "식단표 정보 다운로드 중..."
 ;;
 DOWN_SCHOOLCODE )
@@ -708,9 +703,6 @@ printf "${RED}검색기록이 존재하지 않습니다.${WHITE}"
 ;;
 ERROR_NOT_SUPPORT_YET )
 printf "${RED}아직 지원히지 않습니다${WHITE}"
-;;
-ERROR_NOINTERNET )
-printf "${RED}인터넷을 찾을 수 없습니다.${WHITE}"
 ;;
 LOCATION_NAME )
 echo "지역"
@@ -736,9 +728,6 @@ echo "성공"
 RESULT_EXIT )
 echo "스크립트를 종료합니다"
 ;;
-SEL_WANNA_DAY )
-echo "원하는 날짜를 입력하세요"
-;;
 SCHOOL_NAME )
 echo "학교명"
 ;;
@@ -750,27 +739,6 @@ echo "고등학교 검색"
 ;;
 SEARCH_WORDS )
 echo "검색어"
-;;
-UPDATE_ASK )
-echo "업데이트를 하시겠습니까?"
-;;
-UPDATE_ASK_LAST )
-echo "정말 업데이트를 하시겠습니까?"
-;;
-UPDATE_LOG_DOWNLOAD )
-echo "업데이트 정보 다운로드 중..."
-;;
-UPDATE_SCRIPT_DOWNLOAD )
-echo "업데이트 파일 다운로드 중..."
-;;
-UPDATE_LASTEST )
-echo "스크립트가 최신버전 입니다"
-;;
-UPDATE_MENU )
-echo "스크립트 업데이트"
-;;
-UPDATE_OLD )
-echo "스크립트 업데이트가 필요합니다"
 ;;
 UPDATE_NEWVERSION )
 echo "새로운 정보로 업데이트 중..."
@@ -798,6 +766,7 @@ fi
 }
 
 case "$1" in
+
 eng )
 LANG=eng
 if [ "$2" = nn ]
@@ -806,52 +775,63 @@ NOTICE_DP=0
 else
 NOTICE_DP=1
 fi
+if [ "$2" = rtime ]
+then
+RTIME=0
+else
+RTIME=1
+fi
 if [ "$2" = argy ]
 then
 ADD_ALLERGY=1
 fi
 if [ "$2" = help ]
 then
-LANG=eng
 DISPLAY_HELP
 fi
 if [ "$2" = "-d" ]
 then
-LANG=eng
 DIRECT_DISPLAY=1
 THIRD=1
 fi
 if [ "$2" = "-s" ]
 then
-LANG=eng
-THIRD=0
+THIRD=1
 DIRECT_DISPLAY_SELETED=1
 fi
 ;;
-nn )
+
+rtime )
 LANG=kor
-NOTICE_DP=0
+RTIME=1
+NOTICE_DP=1
 ;;
+
 argy )
 LANG=kor
 ADD_ALLERGY=1
 ;;
+
 help )
 LANG=kor
 DISPLAY_HELP
 ;;
+
 -d )
 LANG=kor
 DIRECT_DISPLAY=1
 THIRD=0
 ;;
+
 -s )
 LANG=kor
 THIRD=0
 DIRECT_DISPLAY_SELETED=1
 ;;
+
 * )
 LANG=kor
+NOTICE_DP=1
 ;;
 esac
 
@@ -860,32 +840,56 @@ then
 DISPLAY_HELP
 fi
 
+if [ "$RTIME" = 1 ]
+then
+START_SCRIPT_TIME="$(date +%s)"
+fi
+
+if [ "$DIRECT_DISPLAY_SELETED" = 1 ]
+then
+if [ "$THIRD" = 0 ]
+then
+TARGET="$TARGET_CACHE/$2.cache"
+DIRECT_DISPLAY_SELETED $3
+elif [ "$THIRD" = 1 ]
+then
+TARGET="$TARGET_CACHE/$3.cache"
+DIRECT_DISPLAY_SELETED $4
+fi
+fi
+
 if [ "$DIRECT_DISPLAY" = 1 ]
 then
 if [ "$THIRD" = 0 ]
 then
-TARGET="$TARGET_CACHE/$2"
+TARGET="$TARGET_CACHE/$2.cache"
 elif [ "$THIRD" = 1 ]
 then
-TARGET="$TARGET_CACHE/$3"
+TARGET="$TARGET_CACHE/$3.cache"
 fi
 DIRECT_DISPLAY
 fi
 
 case "$ADD_ALLERGY" in
 1 )
+echo "! $(LANG $LANG CLEAR_FILE)"
 PRT_ALLERGY
 echo ""
 echo "" > $TARGET_CACHE/ADDED_ALLERGY
+COUNT_ADD_ARGY=1
 while true
 do
-echo "! $(LANG $LANG ADDED_ALLERGY): $ADDED_ALLERGY_NOW"
-echo -n "* $(LANG $LANG ASK_ALLERGY): "
-read NUM_ALLERGY
+read -p "! $(LANG $LANG ADDED_ALLERGY): $ADDED_ALLERGY_NOW
+
+* $(LANG $LANG ASK_ALLERGY): " NUM_ALLERGY
+
 if [ "$NUM_ALLERGY" = 0 ]
 then
-exit 0
+echo "! $(LANG $LANG RESULT_EXIT)"
+break
 fi
+if [ "$COUNT_ADD_ARGY" != 1 ]
+then
 if [ "$(grep -w "$NUM_ALLERGY" $TARGET_CACHE/ADDED_ALLERGY)" = "$ADDED_ALLERGY_NOW" ]
 then
 echo "@ $(LANG $LANG ALREAY_ADDED)"
@@ -893,6 +897,11 @@ else
 ADDED_ALLERGY_NOW=""$ADDED_ALLERGY_NOW"$NUM_ALLERGY,"
 echo "$ADDED_ALLERGY_NOW" > $TARGET_CACHE/ADDED_ALLERGY
 fi
+else
+ADDED_ALLERGY_NOW=""$ADDED_ALLERGY_NOW"$NUM_ALLERGY,"
+echo "$ADDED_ALLERGY_NOW" > $TARGET_CACHE/ADDED_ALLERGY
+fi
+COUNT_ADD_ARGY="$(expr $COUNT_ADD_ARGY + 1)"
 done
 exit 0
 ;;
@@ -905,15 +914,44 @@ else
 CACHE_TOTAL="0KB"
 fi
 
+case $1 in
+-l|--log )
+if [ ! -e $TARGET_CACHE/.SEARCH_LOG ]
+then
+echo "! ERROR: $(LANG $LANG ERROR_NOTFOUNDLOG)"
+exit 0
+fi
+echo "      |$(LANG $LANG DATE_FULL)|    |$(LANG $LANG DATE_FULL)|    |$(LANG $LANG LOCATION_NAME)|      |$(LANG $LANG SCHOOL_NAME)|   |$(LANG $LANG SEARCH_WORDS)|"
+cat $TARGET_CACHE/.SEARCH_LOG
+exit 0
+;;
+-c|--clear )
+if [ "$2" = cache ]
+then
+echo -n "! $(LANG $LANG REMOVE_CACHE)"
+find $TARGET_CACHE/*.cache ! -name ADDED_ALLERGY -exec rm {} \; 2> /dev/null
+echo " [$(LANG $LANG RESULT_SUCCESS)]"
+fi
+if [ "$2" = argy ]
+then
+echo -n "! $(LANG $LANG REMOVE_CACHE)"
+rm $TARGET_CACHE/ADDED_ALLERGY 2> /dev/null
+echo " [$(LANG $LANG RESULT_SUCCESS)]"
+fi
+exit 0
+;;
+* )
+#clear
+;;
+esac
 if [ "$CACHE_TOTAL" = "KB" ]
 then
 CACHE_TOTAL="$(LANG $LANG ERROR_NODATA)"
 fi
-
 if [ ! -e $SCHOOL_CODE_INFO ]
 then
 echo -n "! $(LANG $LANG DOWN_SCHOOLCODE)"
-wget -q -O $SCHOOL_CODE_INFO "https://mokky.000webhostapp.com/binary/cafeteria/cache/school_code/school_code.db"
+wget -q -O $SCHOOL_CODE_INFO "http://mokky.dothome.co.kr/cafeteria/cache/school_code/school_code.db"
 if [ -e $SCHOOL_CODE_INFO ]
 then
 echo " [$(LANG $LANG RESULT_SUCCESS)]
@@ -923,20 +961,21 @@ echo " [$(LANG $LANG RESULT_FAILED)]"
 exit 0
 fi
 fi
-
-read -p "$(LANG $LANG SCRIPT_TITLE)
+START_ULOG_TIME="$(date +%s)"
+echo "$(LANG $LANG SCRIPT_TITLE)
 ! $(nl $SCHOOL_CODE_INFO | tail -n 1 | awk '{print $1}')$(LANG $LANG LOAD_SCHOOL)
-! $(LANG $LANG CACHE_SIZE): $CACHE_TOTAL
-
-* $(LANG $LANG SEARCH_SCHOOL): " search
-
+! $(LANG $LANG CACHE_SIZE): $CACHE_TOTAL"
+STOP_ULOG_TIME="$(date +%s)"
+START_SEARCH_TIME="$(date +%s)"
+read -p "* $(LANG $LANG SEARCH_SCHOOL): " search
+STOP_SEARCH_TIME="$(date +%s)"
 if [ "$search" != "" ]
 then
 SCHOOL_NUM=0
 echo "==========================================="
 for i in $(grep "$search" $SCHOOL_CODE_INFO | awk '{print $3}')
 do
-if [ -e "$TARGET_CACHE/$(grep $i $SCHOOL_CODE_INFO | awk '{print $1}')" ]
+if [ -e "$TARGET_CACHE/$(grep $i $SCHOOL_CODE_INFO | awk '{print $1}').cache" ]
 then
 PRINT_CACHE="[C] "
 else
@@ -949,24 +988,77 @@ if [ "$SCHOOL_NUM" = 0 ]
 then
 echo "$(LANG $LANG ERROR_NODATA)"
 else
-echo "0. $(LANG $LANG CARTRE_CANCEL)"
+echo "0. $(LANG $LANG CARTE_CANCEL)"
 fi
 echo "==========================================="
 elif [ "$search" == "" ]
 then
 SCHOOL_NUM=0
 fi
-
+START_PROCEED_TIME="$(date +%s)"
 case $SCHOOL_NUM in
 0 )
 read -p "! $(LANG $LANG ERROR_DONOTUSESHORT)
-! $(LANG $LANG ERROR_DONOTUSESPACE)"
+! $(LANG $LANG ERROR_DONOTUSESPACE)
+
+! $(LANG $LANG UPLOAD_SCHOOLID) [y/n]: " upload
+if [ "$upload" = y ]
+then
+echo
+elif [ "$upload" = n ]
+then
+exit 0
+else
+exit 0
+fi
+echo "~ $(LANG $LANG UPLOAD_SCHOOLID_TITLE) ~"
+read -p "* $(LANG $LANG UPLOAD_SCHOOLID_SITE): " SITE
+read -p "* $(LANG $LANG UPLOAD_SCHOOLID_REGION): " REGION
+if [ "$REGION" = "" ]
+then
+echo "! $(LANG $LANG ERROR_DONOTUSESPACE)"
+exit 0
+else
+REGION="$(echo "$REGION" | tr -d ' ')"
+fi
+read -p "* $(LANG $LANG UPLOAD_SCHOOLID_NAME): " NAME
+if [ "$NAME" = "" ]
+then
+echo "! $(LANG $LANG ERROR_DONOTUSESPACE)"
+exit 0
+else
+NAME="$(echo "$NAME" | tr -d ' ')"
+fi
+echo "~ $(LANG $LANG UPLOAD_SCHOOLID_TITLE) ~
+
+검색어: $search
+
+홈페이지: $SITE
+
+학교지역: $REGION
+
+학교이름: $NAME" > $TARGET_CACHE/$REGION_$NAME
+echo -n "
+! $(LANG $LANG UPLOAD_SCHOOLID_REQUEST) "
+curl -s -T $TARGET_CACHE/$REGION_$NAME -u mokky:mokky04120 ftp://mokky.dothome.co.kr/html/report/request_school/
+rm $TARGET_CACHE/$REGION_$NAME
+echo "[$(LANG $LANG RESULT_SUCCESS)]"
 exit 0
 ;;
-
 1 )
 select=1
-read -p "* $(LANG $LANG CARTRE_TODAY)=1, $(LANG $LANG CARTRE_MONTHLY)=2 [$(LANG $LANG CARTRE_SELECT)]: " seltype
+read -p "b. $(LANG $LANG ADD_BACKGROUND)
+* $(LANG $LANG CARTE_TODAY)=1, $(LANG $LANG CARTE_MONTHLY)=2 [$(LANG $LANG CARTE_SELECT)]: " seltype
+if [ "$seltype" = b ]
+then
+SCHOOL_CODE=$(grep $search $SCHOOL_CODE_INFO | awk '{print $1}' | head -n $select | tail -n 1)
+echo "
+$(LANG $LANG ADD_DESKTOP)
+"
+read -s -n1 -p "$(LANG $LANG PRESS_ANYKEY)" press
+echo ""
+exit 0
+fi
 if [ "$seltype" = 1 ]
 then
 PRINT_TYPE=TODAY
@@ -982,9 +1074,8 @@ echo "! $(LANG $LANG ERROR_FAILDREQUEST)"
 exit 0
 fi
 ;;
-
 * )
-read -p "* $(LANG $LANG CARTRE_SELECT): " select
+read -p "* $(LANG $LANG CARTE_SELECT): " select
 if [ "$select" = "" ]
 then
 echo "! $(LANG $LANG ERROR_DONOTUSESPACE)"
@@ -1003,18 +1094,15 @@ PRINT_TYPE=TODAY
 fi
 ;;
 esac
-
 SCHOOL_NAME=$(grep $search $SCHOOL_CODE_INFO | awk '{print $3}' | head -n $select | tail -n 1)
 SCHOOL_CODE=$(grep $search $SCHOOL_CODE_INFO | awk '{print $1}' | head -n $select | tail -n 1)
 SCHOOL_REGION_NAME=$(grep $search $SCHOOL_CODE_INFO | awk '{print $2}' | head -n $select | tail -n 1)
-
 if [ -e $TARGET_CACHE/$SCHOOL_CODE.cache ]
 then
 USE_CACHE=1
 else
 USE_CACHE=0
 fi
-
 case $USE_CACHE in
 1 )
 echo -n "! $(LANG $LANG CHECK_CAHCE)"
@@ -1023,7 +1111,7 @@ if [ "$TARGET_CACHE_DATE" != "$YEAR$MONTH" ]
 then
 echo " [$(LANG $LANG RESULT_FAILD)]"
 echo -n "! $(LANG $LANG UPDATE_NEWVERSION)"
-DOWN_CARTRE $SCHOOL_REGION_NAME
+DOWN_CARTE $SCHOOL_REGION_NAME
 echo " [$(LANG $LANG RESULT_SUCCESS)]"
 elif [ "$TARGET_CACHE_DATE" = "$YEAR$MONTH" ]
 then
@@ -1031,10 +1119,9 @@ echo " [$(LANG $LANG RESULT_SUCCESS)]"
 TARGET=$TARGET_CACHE/$SCHOOL_CODE.cache
 fi
 ;;
-
 0 )
-echo -n "! $(LANG $LANG DOWN_CARTREINFO)"
-DOWN_CARTRE $SCHOOL_REGION_NAME
+echo -n "! $(LANG $LANG DOWN_CARTEINFO)"
+DOWN_CARTE $SCHOOL_REGION_NAME
 if [ -e $TARGET ]
 then
 echo " [$(LANG $LANG RESULT_SUCCESS)]"
@@ -1044,12 +1131,10 @@ exit 0
 fi
 ;;
 esac
-
 sed -i -e 's/\s//g' $TARGET
 echo "
 | $YEAR. $MONTH |
 "
-
 case $PRINT_TYPE in
 TODAY )
 if [ "$(date +%d | cut -b1)" = "0" ]
@@ -1061,7 +1146,6 @@ fi
 PARS_COMMON
 PARS_PRINT
 ;;
-
 MONTHLY )
 LAST_DAY=$(date -d "-$(date +%d) days +1 month" +%d)
 for i in $(seq 1 $LAST_DAY)
@@ -1078,5 +1162,18 @@ PARS_PRINT
 done
 ;;
 esac
+STOP_PROCEED_TIME="$(date +%s)"
 PRT_ALLERGY
 CLR_SCRIPT
+if [ "$RTIME" = 1 ]
+then
+STOP_SCRIPT_TIME="$(date +%s)"
+TOTAL_ULOG_TIME="$(expr $STOP_ULOG_TIME - $START_ULOG_TIME)"
+TOTAL_SEARCH_TIME="$(expr $STOP_SEARCH_TIME - $START_SEARCH_TIME)"
+TOTAL_PROCEED_TIME="$(expr $STOP_PROCEED_TIME - $START_PROCEED_TIME)"
+TOTAL_RUNNING_TIME="$(expr $STOP_SCRIPT_TIME - $START_SCRIPT_TIME)"
+echo "
+--- SEARCH TIME: $TOTAL_SEARCH_TIME sec
+--- PROCEED TIME: $TOTAL_PROCEED_TIME sec
+--- TOTAL RUNNING TIME: $TOTAL_RUNNING_TIME sec"
+fi
