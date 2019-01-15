@@ -1,5 +1,5 @@
 #!/bin/bash
-MAIN_DIR=/mnt/d/Workspace/Linux/cafeteria
+MAIN_DIR=$HOME
 TARGET_DOWNLOAD=$MAIN_DIR/cache/download
 TARGET=$TARGET_DOWNLOAD/cafeteria.html
 TARGET_CACHE=$MAIN_DIR/cache
