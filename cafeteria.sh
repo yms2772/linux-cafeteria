@@ -1,5 +1,5 @@
 #!/bin/bash
-MAIN_DIR=$HOME
+MAIN_DIR=$HOME/cafeteria
 TARGET_DOWNLOAD=$MAIN_DIR/cache/download
 TARGET=$TARGET_DOWNLOAD/cafeteria.html
 TARGET_CACHE=$MAIN_DIR/cache
@@ -10,19 +10,14 @@ TODAY=$(date +%a)
 RED='\033[0;31m'
 WHITE='\033[0m'
 
-if [ ! -d "$MAIN_DIR" ]
-then
-mkdir -p "$MAIN_DIR"
-fi
-
-if [ ! -d "$TARGET_CACHE" ]
-then
-mkdir -p "$TARGET_CACHE"
-fi
-
 if [ ! -d "$TARGET_DOWNLOAD" ]
 then
 mkdir -p "$TARGET_DOWNLOAD"
+fi
+
+if [ ! -d "$TARGET_CACHE/school_code" ]
+then
+mkdir -p "$TARGET_CACHE/school_code"
 fi
 
 if [ "$1" = "eng" ]
@@ -418,7 +413,7 @@ CARTE_DINNER )
 echo "DINNER"
 ;;
 CARTE_CANCEL )
-printf "${RED}CANCEL (취소){WHITE}"
+printf "${RED}CANCEL (취소)${WHITE}"
 ;;
 CARTE_MONTHLY )
 echo "MONTH"
@@ -546,6 +541,9 @@ echo "High School Search"
 ;;
 SEARCH_WORDS )
 echo "WORDS"
+;;
+TYPE_OVER_ONE )
+printf "${RED}Please enter at least two characters${WHITE}"
 ;;
 UPDATE_NEWVERSION )
 echo "Updating with new information..."
@@ -740,6 +738,9 @@ echo "고등학교 검색"
 SEARCH_WORDS )
 echo "검색어"
 ;;
+TYPE_OVER_ONE )
+printf "${RED}두 글자 이상 입력해주세요.${WHITE}"
+;;
 UPDATE_NEWVERSION )
 echo "새로운 정보로 업데이트 중..."
 ;;
@@ -769,16 +770,8 @@ case "$1" in
 
 eng )
 LANG=eng
-if [ "$2" = nn ]
-then
-NOTICE_DP=0
-else
-NOTICE_DP=1
-fi
 if [ "$2" = rtime ]
 then
-RTIME=0
-else
 RTIME=1
 fi
 if [ "$2" = argy ]
@@ -874,8 +867,8 @@ case "$ADD_ALLERGY" in
 1 )
 echo "! $(LANG $LANG CLEAR_FILE)"
 PRT_ALLERGY
-echo ""
-echo "" > $TARGET_CACHE/ADDED_ALLERGY
+echo
+echo > $TARGET_CACHE/ADDED_ALLERGY
 COUNT_ADD_ARGY=1
 while true
 do
@@ -941,7 +934,7 @@ fi
 exit 0
 ;;
 * )
-#clear
+clear
 ;;
 esac
 if [ "$CACHE_TOTAL" = "KB" ]
@@ -951,7 +944,7 @@ fi
 if [ ! -e $SCHOOL_CODE_INFO ]
 then
 echo -n "! $(LANG $LANG DOWN_SCHOOLCODE)"
-wget -q -O $SCHOOL_CODE_INFO "http://mokky.dothome.co.kr/cafeteria/cache/school_code/school_code.db"
+wget -q -O $SCHOOL_CODE_INFO "https://raw.githubusercontent.com/yms2772/linux_cafeteria/master/cache/school_code/school_code.db"
 if [ -e $SCHOOL_CODE_INFO ]
 then
 echo " [$(LANG $LANG RESULT_SUCCESS)]
@@ -967,7 +960,16 @@ echo "$(LANG $LANG SCRIPT_TITLE)
 ! $(LANG $LANG CACHE_SIZE): $CACHE_TOTAL"
 STOP_ULOG_TIME="$(date +%s)"
 START_SEARCH_TIME="$(date +%s)"
+echo
 read -p "* $(LANG $LANG SEARCH_SCHOOL): " search
+if [ "$(echo ${search:1:1})" = "" ]
+then
+read -s -n1 -p "! $(LANG $LANG TYPE_OVER_ONE)
+
+$(LANG $LANG PRESS_ANYKEY)" press
+echo
+exit 0
+fi
 STOP_SEARCH_TIME="$(date +%s)"
 if [ "$search" != "" ]
 then
@@ -998,10 +1000,12 @@ fi
 START_PROCEED_TIME="$(date +%s)"
 case $SCHOOL_NUM in
 0 )
-read -p "! $(LANG $LANG ERROR_DONOTUSESHORT)
+read -s -n1 -p "! $(LANG $LANG ERROR_DONOTUSESHORT)
 ! $(LANG $LANG ERROR_DONOTUSESPACE)
 
-! $(LANG $LANG UPLOAD_SCHOOLID) [y/n]: " upload
+$(LANG $LANG PRESS_ANYKEY)" press
+echo
+exit 0
 ;;
 1 )
 select=1
@@ -1014,7 +1018,7 @@ echo "
 $(LANG $LANG ADD_DESKTOP)
 "
 read -s -n1 -p "$(LANG $LANG PRESS_ANYKEY)" press
-echo ""
+echo
 exit 0
 fi
 if [ "$seltype" = 1 ]
