@@ -1002,48 +1002,6 @@ read -p "! $(LANG $LANG ERROR_DONOTUSESHORT)
 ! $(LANG $LANG ERROR_DONOTUSESPACE)
 
 ! $(LANG $LANG UPLOAD_SCHOOLID) [y/n]: " upload
-if [ "$upload" = y ]
-then
-echo
-elif [ "$upload" = n ]
-then
-exit 0
-else
-exit 0
-fi
-echo "~ $(LANG $LANG UPLOAD_SCHOOLID_TITLE) ~"
-read -p "* $(LANG $LANG UPLOAD_SCHOOLID_SITE): " SITE
-read -p "* $(LANG $LANG UPLOAD_SCHOOLID_REGION): " REGION
-if [ "$REGION" = "" ]
-then
-echo "! $(LANG $LANG ERROR_DONOTUSESPACE)"
-exit 0
-else
-REGION="$(echo "$REGION" | tr -d ' ')"
-fi
-read -p "* $(LANG $LANG UPLOAD_SCHOOLID_NAME): " NAME
-if [ "$NAME" = "" ]
-then
-echo "! $(LANG $LANG ERROR_DONOTUSESPACE)"
-exit 0
-else
-NAME="$(echo "$NAME" | tr -d ' ')"
-fi
-echo "~ $(LANG $LANG UPLOAD_SCHOOLID_TITLE) ~
-
-검색어: $search
-
-홈페이지: $SITE
-
-학교지역: $REGION
-
-학교이름: $NAME" > $TARGET_CACHE/$REGION_$NAME
-echo -n "
-! $(LANG $LANG UPLOAD_SCHOOLID_REQUEST) "
-curl -s -T $TARGET_CACHE/$REGION_$NAME -u mokky:mokky04120 ftp://mokky.dothome.co.kr/html/report/request_school/
-rm $TARGET_CACHE/$REGION_$NAME
-echo "[$(LANG $LANG RESULT_SUCCESS)]"
-exit 0
 ;;
 1 )
 select=1
